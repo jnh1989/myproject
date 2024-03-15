@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.member.codingtest.mapper.ICodingTestMapper">
+	
+	<!-- 검색 -->
+	<sql id="codingTestSearch">
+		<if test="searchType != null and searchType == 'title'">
+			and (prct_ques_ttl like '%'||#{searchWord}||'%')
+		</if>
+	</sql>
+	
+	<select id="selectCodingTestCount" parameterType="paginationInfoVO" resultType="int">
+		select count(prct_ques_no) from practicequestion
+		where 1=1
+		<include refid="codingTestSearch" />
+	</select>
+	
+	<!-- 문제 목록 조회 -->
+	<select id="selectCodingTestList" parameterType="paginationInfoVO" resultType="practiceQuestionVO">
+		select b.*
+			from (
+			    select a.*, row_number() over (order by a.prct_ques_no desc) rnum
+			    from (
+			        select 
+			        	prct_ques_no,prct_ques_ttl,prct_ques_dffly_cd,
+			        	(select solut_yn from practicequestionsolutionyn pqs where pq.prct_ques_no = pqs.prct_ques_no and pqs.pr_mbr_id = #{searchVO.prMbrId}) as solut_yn
+					from practicequestion pq
+					where 1=1
+					<include refid="codingTestSearch" />
+					order by 1 desc 
+			    ) a
+			) b
+		<![CDATA[
+			where b.rnum >= #{startRow} and b.rnum <= #{endRow}
+		]]>
+	</select>
+	<!-- 
+	내가 푼 문제  
+	<select id="selectSolutionYn" parameterType="practiceVO" resultType="string">
+		select 
+		    pq.PRCT_QUES_NO,PRCT_QUES_TTL,PRCT_QUES_DFFLY_CD,
+		    SOLUT_YN
+		from PRACTICEQUESTION pq left outer join PRACTICEQUESTIONSOLUTIONYN pqsyn on(pq.PRCT_QUES_NO = pqsyn.prct_ques_no)
+		where PR_MBR_ID = #{searchVO.prMbrId};
+	</select>
+	 -->
+	 
+	<!-- 상세보기 -->
+	<select id="selectCodingTest" parameterType="int" resultType="practiceQuestionVO">
+		select
+			prct_ques_no
+			, prct_ques_ttl
+			, prct_ques_cn
+			, prct_ques_dffly_cd
+			, lmt_mttr
+			, ans
+			, ex
+		from
+			practicequestion
+		where
+			prct_ques_no = #{prctQuesNo}
+	</select>
+	
+	<select id="problemIsSolve" parameterType="practiceQuestionSolutionYnVO" resultType="practiceQuestionSolutionYnVO">
+		select 
+			pr_mbr_id,prct_ques_no,solut_yn
+		from practicequestionsolutionyn
+		where pr_mbr_id = #{prMbrId}
+		and prct_ques_no = #{prctQuesNo}
+	</select>
+	
+	<update id="updateSolutionYn" parameterType="practiceQuestionSolutionYnVO">
+		update practicequestionsolutionyn set solut_yn = 'y' where 1=1 and pr_mbr_id=#{prMbrId} and prct_ques_no=#{prctQuesNo}
+	</update>
+	
+	<insert id="insertSolutionYn" parameterType="practiceQuestionSolutionYnVO">
+		insert into practicequestionsolutionyn(
+			pr_mbr_id,prct_ques_no,solut_yn
+		)values(
+			#{prMbrId},#{prctQuesNo},'y'
+		)
+	</insert>
+	
+	
+</mapper>

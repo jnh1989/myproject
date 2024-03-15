@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+  <mapper namespace="kr.or.ddit.member.mypage.mapper.IMypageMapper">
+  
+  
+  
+  <!-- 회원정보 조회 -->
+  <select id="getMemberInfo" parameterType="string" resultType="memberVO">
+  	select
+	    pr_mbr_id,
+	    pr_mbr_nm,
+	    pr_mbr_ncnm,
+	    pr_mbr_telno,
+	    pr_mbr_email,
+	    pr_mbr_birthdy,
+	    pr_mbr_zip,
+	    pr_mbr_bsc_addr,
+	    pr_mbr_daddr
+	from
+	    privatemember
+	where
+	    pr_mbr_id = #{prMbrId}
+  </select>
+  
+  <!-- 회원정보수정 -->
+ <update id="profileUpdate" parameterType="memberVO">
+    UPDATE privatemember
+    SET
+        pr_mbr_nm = #{prMbrNm},
+        pr_mbr_ncnm = #{prMbrNcnm},
+        pr_mbr_pswd = #{prMbrPswd},
+        pr_mbr_telno = #{prMbrTelno},
+        pr_mbr_email = #{prMbrEmail},
+        pr_mbr_zip = #{prMbrZip},
+        pr_mbr_bsc_addr = #{prMbrBscAddr},
+        pr_mbr_daddr = #{prMbrDaddr},
+        sexdstn_cd = #{sexdstnCd}
+    WHERE
+        pr_mbr_id = #{prMbrId}
+</update>
+  
+  
+  </mapper>

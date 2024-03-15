@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.member.employment.mapper.IEmpMapper">
+
+	<select id="selectEmpCount" parameterType="pagingVO" resultType="int">
+		SELECT COUNT(empmn_pbanc_no) FROM employmentannouncement
+	</select>
+	
+	
+	<select id="selectEmpList" parameterType="pagingVO" resultType="employVO">
+		SELECT b.*, em.logo_img
+			FROM (
+			    SELECT a.*, ROW_NUMBER() OVER (ORDER BY a.empmn_pbanc_ddln_ymd ASC) rnum
+			    FROM (
+			        SELECT
+			            e.empmn_pbanc_no,
+			            e.empmn_pbanc_ttl,
+			            e.empmn_pbanc_wrtr_nm,
+			            e.empmn_pbanc_ddln_ymd,
+			            e.career_cd,
+			            e.duty_cd,
+			            e.rgn,
+			            e.ent_mbr_id
+			        FROM employmentannouncement e
+			        WHERE 1=1
+			        ORDER BY e.empmn_pbanc_ddln_ymd ASC, e.empmn_pbanc_no desc
+			    ) a
+			) b
+			JOIN enterprisemembeR em ON em.ent_mbr_id = b.ent_mbr_id
+		<![CDATA[
+			where b.rnum >= #{startRow} and b.rnum <= #{endRow}
+		]]>
+	</select>
+	
+	
+	<update id="incrementHit" parameterType="int">
+		UPDATE employmentannouncement
+		SET
+			empmn_pbanc_inq_cnt = empmn_pbanc_inq_cnt + 1
+		WHERE empmn_pbanc_no = #{empmnPbancNo}
+	</update>
+	
+	
+	<select id="selectEmployment" parameterType="int" resultType="employVO">
+		SELECT
+		  EA.empmn_pbanc_no,
+		  EA.empmn_pbanc_ttl,
+		  EA.empmn_pbanc_wrtr_nm,
+		  EA.empmn_pbanc_cn,
+		  EA.empmn_pbanc_wrt_ymd,
+		  EA.empmn_pbanc_ddln_ymd,
+		  EA.empmn_pbanc_inq_cnt,
+		  EA.career_cd,
+		  EA.acbg_cd,
+		  EA.powk_nm,
+		  EA.salary,
+		  EA.work_type,
+		  EA.work_hr,
+		  EA.rgn,
+		  EA.duty_cd,
+		  EA.gender_cd,
+		  EM.ent_pic_telno
+		FROM
+		  employmentannouncement EA
+		JOIN
+		  enterprisemember EM ON EA.ent_mbr_id = EM.ent_mbr_id
+		WHERE
+		  EA.empmn_pbanc_no = #{empmnPbancNo}
+	</select>
+	
+	
+	
+	
+	
+
+
+
+
+
+
+
+
+	<!-- @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ 기업회원 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ -->
+	
+	<select id="selectAnnouncementList" parameterType="pagingVO" resultType="employVO">
+		SELECT b.*, em.logo_img
+		FROM (
+		    SELECT a.*, ROW_NUMBER() OVER (ORDER BY a.empmn_pbanc_ddln_ymd ASC) rnum
+		    FROM (
+		        SELECT
+		            e.empmn_pbanc_no,
+		            e.empmn_pbanc_ttl,
+		            e.empmn_pbanc_wrtr_nm,
+		            e.empmn_pbanc_ddln_ymd,
+		            e.career_cd,
+		            e.duty_cd,
+		            e.rgn,
+		            e.ent_mbr_id
+		        FROM employmentannouncement e
+		        WHERE e.ent_mbr_id = #{entMbrId}
+		        ORDER BY e.empmn_pbanc_ddln_ymd ASC, e.empmn_pbanc_no DESC
+		    ) a
+		) b
+		JOIN enterprisemember em ON em.ent_mbr_id = b.ent_mbr_id
+	</select>
+	
+
+		
+	
+	<insert id="insertAnnouncement" parameterType="employVO">
+		INSERT INTO employmentannouncement (
+			empmn_pbanc_no,
+			ent_mbr_id,
+			empmn_pbanc_ttl,
+			empmn_pbanc_wrtr_nm,
+			empmn_pbanc_cn,
+			empmn_pbanc_wrt_ymd,
+			empmn_pbanc_ddln_ymd,
+			career_cd,
+			acbg_cd,
+			powk_nm,
+			salary,
+			work_type,
+			work_hr,
+			rgn,
+			duty_cd,
+			gender_cd
+		)
+		VALUES (
+			seq_employmentannouncement.nextval,
+			#{entMbrId},
+			#{empmnPbancTtl},
+			#{empmnPbancWrtrNm},
+			#{empmnPbancCn},
+			sysdate,
+			#{empmnPbancDdlnYmd},
+			#{careerCd},
+			#{acbgCd},
+			#{powkNm},
+			#{salary},
+			#{workType},
+			#{workHr},
+			#{rgn},
+			#{dutyCd},
+			#{genderCd}
+		)
+	</insert>
+</mapper>

@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.member.enterpriseinfo.mapper.IEnterpriseReviewMapper">
+
+<sql id="search">
+	<if test="searchType != null and searchType == 'title'">
+		and (bo_title like '%'||#{searchWord}||'%')
+	</if>
+	<if test="searchType != null and searchType == 'writer'">
+		and (bo_writer like '%'||#{searchWord}||'%')
+	</if>
+</sql>
+
+<sql id="colSearch">
+		<if test="colType != null and colType == 'sexRatio'">
+			ent_mbr_id = #{entMbrId} and sex_ratio = #{sexRatio}
+		</if>
+		<if test="colType != null and colType == 'writer'">
+			and (bo_writer like '%'||#{searchWord}||'%')
+		</if>
+</sql>
+
+
+<select id="selCnt"  resultType="int">
+	select count(*) from ENTERPRISEREVIEW
+</select>
+
+<select id="selColOptionCnt" parameterType="map" resultType="int">
+	select count(*)
+    from ENTERPRISEREVIEW
+    where 1=1
+    <if test="col != null and col != ''">
+        and ${col} = #{option}
+    </if>
+</select>
+
+<select id="listCnt" parameterType="PagingVO" resultType="int">
+	select count(*) from ENTERPRISEREVIEW
+	where 1=1
+</select>
+
+
+<select id="selQuesCd" resultType="EnterpriseReviewQuestionVO">
+	select distinct(ques_cn) from ENTERPRISEREVIEWQUESTION
+</select>
+
+
+<select id="selQuesList" resultType="EnterpriseReviewQuestionVO">
+	select QUES_CD, QUES_CN, OPTION_CD, OPTION_CN
+	from ENTERPRISEREVIEWQUESTION
+</select>
+
+<select id="selErList" resultType="EnterpriseReviewVO">
+	select ENTRV_PST_NO, PR_MBR_ID, ENT_MBR_ID, ENTRV_PST_CN, PSTG_YN, SEX_RATIO, CLOTHES_TYPE, ATTENDANCE_TYPE, AVG_AGE, ANNUAL_TYPE, OVERTIME_CNT, SAL_INC_PER, ANNUAL_USE_D, ENTRV_WRT_DT
+	from ENTERPRISEREVIEW
+</select>
+
+
+<select id="list" parameterType="PagingVO" resultType="EnterpriseReviewVO">
+		select 
+			b.*
+		from (
+			select 
+				a.*, row_number() over (order by a.ENTRV_PST_NO desc) rnum
+			from (
+				select 
+					ENTRV_PST_NO, PR_MBR_ID, ENT_MBR_ID, ENTRV_PST_CN, PSTG_YN, SEX_RATIO, CLOTHES_TYPE, ATTENDANCE_TYPE, AVG_AGE, ANNUAL_TYPE, OVERTIME_CNT, SAL_INC_PER, ANNUAL_USE_D
+				from ENTERPRISEREVIEW
+				where 1=1
+				order by ENTRV_PST_NO desc
+			) a
+		) b
+		<![CDATA[
+			where b.rnum >= #{startRow} and b.rnum <= #{endRow}
+		]]>
+</select>
+
+
+<insert id="insert" parameterType="EnterpriseReviewVO">
+    INSERT INTO ENTERPRISEREVIEW (
+        ENTRV_PST_NO, 
+        PR_MBR_ID, 
+        ENT_MBR_ID, 
+        ENTRV_PST_CN, 
+        PSTG_YN, 
+        SEX_RATIO, 
+        CLOTHES_TYPE, 
+        ATTENDANCE_TYPE, 
+        AVG_AGE, 
+        ANNUAL_TYPE, 
+        OVERTIME_CNT, 
+        SAL_INC_PER, 
+        ANNUAL_USE_D,
+        ENTRV_WRT_DT
+    )
+    VALUES (
+        SEQ_ENTERPRISEREVIEW.nextval,
+        #{prMbrId},
+        #{entMbrId},
+        #{entrvPstCn},
+        #{pstgYn},
+        #{sexRatio},
+        #{clothesType},
+        #{attendanceType},
+        #{avgAge},
+        #{annualType},
+        #{overtimeCnt},
+        #{salIncPer},
+        #{annualUseD},
+        sysdate
+    )
+</insert>
+
+</mapper>

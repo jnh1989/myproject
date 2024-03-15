@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.member.mentoring.mapper.PaymentMapper">
+
+	<insert id="getPayment" parameterType="settleVO">
+		<selectKey keyProperty="settlementNo" resultType="int" order="BEFORE">
+			select seq_settlementdescription.nextval from dual
+		</selectKey>
+		insert into settlementdescription(
+			settlement_no,
+			pr_mbr_id,
+			settlement_dt,
+			settlement_tp_cd,
+			settlement_item,
+			settlement_co,
+			settlement_nm,
+			settlement_hp,
+			settlement_mail
+		) values(
+			#{settlementNo},
+			#{prMbrId},
+			sysdate,
+			#{settlementTpCd},
+			#{settlementItem},
+			#{settlementCo},
+			#{settlementNm},
+			#{settlementHp},
+			#{settlementMail}
+		)
+	</insert>
+
+</mapper>

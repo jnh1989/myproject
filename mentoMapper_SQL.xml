@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.member.mentoring.mapper.MentoMapper">
+
+	<resultMap type="mentoProfileVO" id="mentoProfileMap">
+		<id property="menNcnm" column="men_ncnm"/>
+		<result property="menNcnm" column="men_ncnm"/>
+		<result property="menWrtDt" column="men_wrt_dt"/>
+		<result property="menPstCn" column="men_pst_cn"/>
+		<result property="entNm" column="ent_nm"/>
+		<result property="entLogo" column="ent_logo"/>
+		<result property="bankCd" column="bank_cd"/>
+		<result property="actno" column="actno"/>
+		<result property="applyTaskCd" column="apply_task_cd"/>
+		<result property="applyCareerCd" column="apply_career_cd"/>
+		<result property="menIndt" column="men_indt"/>
+		<collection property="tagList" resultMap="tagMap"/>
+	</resultMap>
+	
+	<resultMap type="mentoTagVO" id="tagMap">
+		<result property="menTag" column="men_tag"/>
+	</resultMap>
+
+	<sql id="mentoSearch">
+		<if test="searchType != null and searchType == 'job'">
+			and (apply_task_cd like '%'||#{searchWord}||'%')
+		</if>
+		<if test="searchType != null and searchType == 'enterprise'">
+			and (ent_nm like '%'||#{searchWord}||'%')
+		</if>
+		<if test="searchType != null and searchType == 'career'">
+			and (apply_career_cd like '%'||#{searchWord}||'%')
+		</if>
+	</sql>
+
+	<select id="selectMentoCount" parameterType="PagingVO" resultType="int">
+		select count(men_ncnm) from mentoringprofile
+		where 1=1
+		<include refid="mentoSearch"/>
+	</select>
+
+	<select id="selectMentoList" parameterType="PagingVO" resultType="mentoProfileVO">
+		select 
+			b.*
+		from (
+			select 
+				a.*, row_number() over (order by a.men_wrt_dt desc) rnum
+			from (
+				select 
+					men_ncnm, 
+					men_wrt_dt, 
+					men_pst_cn,
+					ent_nm, 
+					ent_logo, 
+					apply_task_cd,
+    				apply_career_cd
+				from mentoringprofile
+				where 1=1
+				<include refid="mentoSearch"/>
+				order by men_wrt_dt desc
+			) a
+		) b
+		<![CDATA[
+			where b.rnum >= #{startRow} and b.rnum <= #{endRow}
+		]]>
+	</select>
+	
+	<select id="selectMento" parameterType="string" resultMap="mentoProfileMap">
+		select 
+			mp.men_ncnm, 
+			men_wrt_dt,
+			men_pst_cn,
+			ent_nm, 
+			ent_logo,
+			bank_cd,
+			actno,
+			apply_task_cd,
+    		apply_career_cd,
+    		men_indt,
+    		men_tag
+		from mentoringprofile mp left outer join mentoringtag mt on(mp.men_ncnm = mt.men_ncnm)
+		where
+			mp.men_ncnm = #{menNcnm}
+	</select>
+	
+	<insert id="insertMento" parameterType="mentoProfileVO">
+		insert into mentoringprofile(
+			men_ncnm,
+			pr_mbr_id,
+			men_pst_cn,
+			men_wrt_dt,
+			aprv_yn,
+			trms_agre_cd,
+			bank_cd,
+			actno,
+			ent_nm,
+			ent_logo,
+			apply_task_cd,
+    		apply_career_cd,
+    		men_indt
+			)
+		values(
+			#{menNcnm},
+			#{prMbrId},
+			#{menPstCn},
+			sysdate,
+			#{aprvYn},
+			#{trmsAgreCd},
+			#{bankCd},
+			#{actno},
+			#{entNm},
+			#{entLogo},
+			#{applyTaskCd},
+    		#{applyCareerCd},
+    		#{menIndt}
+			)
+	</insert>
+	
+	<insert id="insertTag" parameterType="mentoTagVO">
+		insert into mentoringtag(
+			men_ncnm,
+			men_tag
+		) values (
+			#{menNcnm},
+			#{menTag}
+		)
+	</insert>
+	
+	<select id="idCheck" parameterType="string" resultType="mentoProfileVO">
+		select
+			men_ncnm,
+			pr_mbr_id,
+			men_pst_cn,
+			men_wrt_dt,
+			trms_agre_cd,
+			bank_cd,
+			actno,
+			ent_nm,
+			ent_logo,
+			apply_task_cd,
+    		apply_career_cd,
+    		men_indt
+		from mentoringprofile
+		where men_ncnm = #{menNcnm}
+	</select>
+	
+	<update id="updateMento" parameterType="mentoProfileVO">
+		update mentoringprofile
+		set
+			men_pst_cn = #{menPstCn},
+			men_wrt_dt = sysdate,
+			bank_cd = #{bankCd},
+			actno = #{actno},
+			ent_nm = #{entNm},
+			apply_task_cd = #{applyTaskCd},
+    		apply_career_cd = #{applyCareerCd},
+			men_indt = #{menIndt}
+	</update>
+	
+	<delete id="deleteTag" parameterType="string">
+		delete from mentoringtag
+		where men_ncnm = #{menNcnm}
+	</delete>
+	
+	<delete id="deleteMento" parameterType="string">
+		delete from mentoringprofile
+		where men_ncnm = #{menNcnm}
+	</delete>
+</mapper>
